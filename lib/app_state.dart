@@ -2,6 +2,7 @@ import 'dart:math';
 import 'data/demo_data.dart';
 import 'models/food_item.dart';
 import 'models/order_item.dart';
+import 'models/user_model.dart';
 
 class AppState {
   String selectedCategory = 'All';
@@ -11,14 +12,25 @@ class AppState {
   final List<OrderItem> orderHistory = [];
   OrderItem? currentOrder;
 
+  final List<UserModel> users = [
+    const UserModel(
+      fullName: 'Người dùng mẫu',
+      email: 'test@gmail.com',
+      password: '123456',
+    ),
+  ];
+
+  UserModel? currentUser;
+  bool isLoggedIn = false;
+
   List<String> get categories {
-    return ['All', ...demoFoods.map((e) => e.category).toSet()];
+    return ['Tất cả', ...demoFoods.map((e) => e.category).toSet()];
   }
 
   List<FoodItem> get filteredFoods {
     return demoFoods.where((food) {
       final matchCategory =
-          selectedCategory == 'All' || food.category == selectedCategory;
+          selectedCategory == 'Tất cả' || food.category == selectedCategory;
       final matchSearch =
       food.name.toLowerCase().contains(searchText.toLowerCase());
       return matchCategory && matchSearch;
@@ -82,7 +94,7 @@ class AppState {
       orderCode: _generateOrderCode(),
       totalAmount: grandTotal,
       paymentMethod: paymentMethod,
-      status: 'Preparing',
+      status: 'Đang chuẩn bị',
       createdAt: DateTime.now(),
     );
 
@@ -95,10 +107,10 @@ class AppState {
     if (currentOrder == null) return;
 
     const statuses = [
-      'Preparing',
-      'Picked Up',
-      'On The Way',
-      'Delivered',
+      'Đang chuẩn bị',
+      'Đã lấy hàng',
+      'Đang giao',
+      'Đã giao',
     ];
 
     final currentIndex = statuses.indexOf(currentOrder!.status);
@@ -119,5 +131,55 @@ class AppState {
 
   double itemTotal(FoodItem food) {
     return (cart[food.id] ?? 0) * food.price;
+  }
+
+  bool register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) {
+    final existed = users.any(
+          (user) => user.email.trim().toLowerCase() == email.trim().toLowerCase(),
+    );
+
+    if (existed) {
+      return false;
+    }
+
+    final newUser = UserModel(
+      fullName: fullName.trim(),
+      email: email.trim(),
+      password: password.trim(),
+    );
+
+    users.add(newUser);
+    currentUser = newUser;
+    isLoggedIn = true;
+    return true;
+  }
+
+  bool login({
+    required String email,
+    required String password,
+  }) {
+    try {
+      final user = users.firstWhere(
+            (u) =>
+        u.email.trim().toLowerCase() == email.trim().toLowerCase() &&
+            u.password == password.trim(),
+      );
+
+      currentUser = user;
+      isLoggedIn = true;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void logout() {
+    currentUser = null;
+    isLoggedIn = false;
+    cart.clear();
   }
 }
