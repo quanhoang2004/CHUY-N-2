@@ -12,18 +12,13 @@ class FoodEmojiArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.15),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        emoji,
-        style: TextStyle(
-          fontSize: size * 0.62,
+      child: Center(
+        child: Text(
+          emoji,
+          style: TextStyle(fontSize: size * 0.6),
         ),
       ),
     );

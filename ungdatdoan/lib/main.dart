@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'app_state.dart';
+import 'screens/admin_food_page.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/home_page.dart';
+import 'screens/order_history_page.dart';
 import 'screens/orders_page.dart';
+import 'screens/profile_page.dart';
 import 'widgets/nav_item_button.dart';
 
 void main() {
-  runApp(const FoodDeliveryApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
 }
 
-class FoodDeliveryApp extends StatelessWidget {
-  const FoodDeliveryApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +23,7 @@ class FoodDeliveryApp extends StatelessWidget {
       title: 'Ứng dụng giao đồ ăn',
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Arial',
-        scaffoldBackgroundColor: const Color(0xFFF7F5EE),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFCDEAAF),
-        ),
+        scaffoldBackgroundColor: const Color(0xFFF6F6F6),
       ),
       home: const AppEntry(),
     );
@@ -39,9 +39,30 @@ class AppEntry extends StatefulWidget {
 
 class _AppEntryState extends State<AppEntry> {
   final AppState appState = AppState();
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initApp();
+  }
+
+  Future<void> initApp() async {
+    await appState.init();
+    if (!mounted) return;
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     if (!appState.isLoggedIn) {
       return LoginPage(
         appState: appState,
@@ -53,7 +74,7 @@ class _AppEntryState extends State<AppEntry> {
 
     return MainScreen(
       appState: appState,
-      onLogout: () {
+      onRefresh: () {
         setState(() {});
       },
     );
@@ -62,12 +83,12 @@ class _AppEntryState extends State<AppEntry> {
 
 class MainScreen extends StatefulWidget {
   final AppState appState;
-  final VoidCallback onLogout;
+  final VoidCallback onRefresh;
 
   const MainScreen({
     super.key,
     required this.appState,
-    required this.onLogout,
+    required this.onRefresh,
   });
 
   @override
@@ -87,29 +108,43 @@ class _MainScreenState extends State<MainScreen> {
             currentIndex = 1;
           });
         },
-        onStateChanged: () {
+        onStateChanged: () async {
+          await widget.appState.loadFoods();
+          widget.onRefresh();
           setState(() {});
         },
       ),
       OrdersPage(
         appState: widget.appState,
         onStateChanged: () {
+          widget.onRefresh();
           setState(() {});
         },
       ),
-      const PlaceholderScreen(title: 'Tìm kiếm'),
-      const PlaceholderScreen(title: 'Yêu thích'),
-      ProfileScreen(
+      widget.appState.isAdmin
+          ? AdminFoodPage(
         appState: widget.appState,
-        onLogout: () {
-          widget.appState.logout();
-          widget.onLogout();
+        onStateChanged: () async {
+          await widget.appState.loadFoods();
+          widget.onRefresh();
+          setState(() {});
+        },
+      )
+          : const SearchPlaceholderPage(),
+      const FavoritePlaceholderPage(),
+      ProfilePage(
+        appState: widget.appState,
+        onLogout: () async {
+          await widget.appState.logout();
+          widget.onRefresh();
         },
       ),
     ];
 
     return Scaffold(
-      body: SafeArea(child: pages[currentIndex]),
+      body: SafeArea(
+        child: pages[currentIndex],
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -127,51 +162,33 @@ class _MainScreenState extends State<MainScreen> {
                   icon: Icons.home_outlined,
                   label: 'Trang chủ',
                   selected: currentIndex == 0,
-                  onTap: () {
-                    setState(() {
-                      currentIndex = 0;
-                    });
-                  },
+                  onTap: () => setState(() => currentIndex = 0),
                 ),
                 NavItemButton(
-                  icon: Icons.shopping_cart_outlined,
+                  icon: Icons.receipt_long_outlined,
                   label: 'Đơn hàng',
                   selected: currentIndex == 1,
-                  onTap: () {
-                    setState(() {
-                      currentIndex = 1;
-                    });
-                  },
+                  onTap: () => setState(() => currentIndex = 1),
                 ),
                 NavItemButton(
-                  icon: Icons.search,
-                  label: 'Tìm kiếm',
+                  icon: widget.appState.isAdmin
+                      ? Icons.storefront_outlined
+                      : Icons.search,
+                  label: widget.appState.isAdmin ? 'Quản lý' : 'Tìm kiếm',
                   selected: currentIndex == 2,
-                  onTap: () {
-                    setState(() {
-                      currentIndex = 2;
-                    });
-                  },
+                  onTap: () => setState(() => currentIndex = 2),
                 ),
                 NavItemButton(
-                  icon: Icons.bookmark_border,
-                  label: 'Đã lưu',
+                  icon: Icons.favorite_border,
+                  label: 'Yêu thích',
                   selected: currentIndex == 3,
-                  onTap: () {
-                    setState(() {
-                      currentIndex = 3;
-                    });
-                  },
+                  onTap: () => setState(() => currentIndex = 3),
                 ),
                 NavItemButton(
                   icon: Icons.person_outline,
                   label: 'Tài khoản',
                   selected: currentIndex == 4,
-                  onTap: () {
-                    setState(() {
-                      currentIndex = 4;
-                    });
-                  },
+                  onTap: () => setState(() => currentIndex = 4),
                 ),
               ],
             ),
@@ -182,18 +199,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({super.key, required this.title});
+class SearchPlaceholderPage extends StatelessWidget {
+  const SearchPlaceholderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 28,
+        'Tìm kiếm',
+        style: TextStyle(
+          fontSize: 24,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -201,101 +216,19 @@ class PlaceholderScreen extends StatelessWidget {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
-  final AppState appState;
-  final VoidCallback onLogout;
-
-  const ProfileScreen({
-    super.key,
-    required this.appState,
-    required this.onLogout,
-  });
+class FavoritePlaceholderPage extends StatelessWidget {
+  const FavoritePlaceholderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = appState.currentUser;
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const SizedBox(height: 30),
-          const CircleAvatar(
-            radius: 42,
-            backgroundColor: Color(0xFFCDEAAF),
-            child: Icon(
-              Icons.person,
-              size: 42,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            user?.fullName ?? 'Người dùng',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            user?.email ?? '',
-            style: const TextStyle(
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 28),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Column(
-              children: [
-                _profileRow('Họ tên', user?.fullName ?? ''),
-                const Divider(),
-                _profileRow('Email', user?.email ?? ''),
-                const Divider(),
-                _profileRow(
-                  'Số đơn đã tạo',
-                  appState.orderHistory.length.toString(),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: FilledButton(
-              onPressed: onLogout,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: const Text('Đăng xuất'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _profileRow(String label, String value) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
+    return const Center(
+      child: Text(
+        'Yêu thích',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
         ),
-        Text(value),
-      ],
+      ),
     );
   }
 }

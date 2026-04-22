@@ -29,28 +29,24 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void handleLogin() {
+  Future<void> handleLogin() async {
     if (!formKey.currentState!.validate()) return;
 
-    final success = widget.appState.login(
+    final success = await widget.appState.login(
       email: emailController.text,
       password: passwordController.text,
     );
 
+    if (!mounted) return;
+
     if (success) {
       widget.onLoginSuccess();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập thành công'),
-          behavior: SnackBarBehavior.floating,
-        ),
+        const SnackBar(content: Text('Đăng nhập thành công')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sai email hoặc mật khẩu'),
-          behavior: SnackBarBehavior.floating,
-        ),
+        const SnackBar(content: Text('Sai email hoặc mật khẩu')),
       );
     }
   }
@@ -77,37 +73,24 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      '🍔',
-                      style: TextStyle(fontSize: 46),
-                    ),
+                    child: const Text('🍔', style: TextStyle(fontSize: 46)),
                   ),
                 ),
                 const SizedBox(height: 30),
                 const Text(
                   'Đăng nhập',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Chào mừng bạn quay lại ứng dụng giao đồ ăn',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.black54,
-                  ),
+                  'Admin mẫu: admin@gmail.com / 123456',
+                  style: TextStyle(fontSize: 15, color: Colors.black54),
                 ),
                 const SizedBox(height: 28),
-                const Text(
-                  'Email',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
+                const Text('Email', style: TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
                   decoration: _inputDecoration('Nhập email'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -120,10 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Mật khẩu',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
+                const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: passwordController,
@@ -160,9 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: handleLogin,
                     style: FilledButton.styleFrom(
                       backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
                     ),
                     child: const Text('Đăng nhập'),
                   ),
@@ -180,31 +157,9 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       );
-                      setState(() {});
+                      if (mounted) setState(() {});
                     },
                     child: const Text('Chưa có tài khoản? Đăng ký'),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.black12),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tài khoản mẫu',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      SizedBox(height: 8),
-                      Text('Email: test@gmail.com'),
-                      Text('Mật khẩu: 123456'),
-                    ],
                   ),
                 ),
               ],
@@ -220,21 +175,9 @@ class _LoginPageState extends State<LoginPage> {
       hintText: hint,
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide.none,
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: Colors.red),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: Colors.red),
       ),
     );
   }

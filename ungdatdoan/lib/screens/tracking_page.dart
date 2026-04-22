@@ -16,129 +16,49 @@ class TrackingPage extends StatelessWidget {
     final order = appState.currentOrder;
 
     if (order == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Tracking')),
-        body: const Center(
-          child: Text(
-            'Chưa có đơn hàng nào để theo dõi',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-        ),
+      return const Scaffold(
+        body: Center(child: Text('Chưa có đơn hàng')),
       );
     }
 
     final steps = [
-      'Preparing',
-      'Picked Up',
-      'On The Way',
-      'Delivered',
+      'Đang chuẩn bị',
+      'Đã lấy hàng',
+      'Đang giao',
+      'Đã giao',
     ];
 
     final currentIndex = steps.indexOf(order.status);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Track Order'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Theo dõi đơn hàng')),
       body: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFCDEAAF),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Order Code: ${order.orderCode}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Payment: ${order.paymentMethod}'),
-                  const SizedBox(height: 6),
-                  Text('Total: \$${order.totalAmount.toStringAsFixed(2)}'),
-                  const SizedBox(height: 6),
-                  Text('Status: ${order.status}'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Order Progress',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 16),
+            Text('Mã đơn: ${order.orderCode}'),
+            Text('Khách hàng: ${order.customerName}'),
+            Text('SĐT: ${order.phone}'),
+            Text('Địa chỉ: ${order.address}'),
+            Text('Tổng tiền: ${order.totalAmount} đ'),
+            Text('Trạng thái: ${order.status}'),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                 itemCount: steps.length,
                 itemBuilder: (_, index) {
                   final done = index <= currentIndex;
-                  final isCurrent = index == currentIndex;
-
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: done ? Colors.green : Colors.grey.shade300,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              done ? Icons.check : Icons.circle,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                          ),
-                          if (index != steps.length - 1)
-                            Container(
-                              width: 3,
-                              height: 60,
-                              color: done ? Colors.green : Colors.grey.shade300,
-                            ),
-                        ],
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: done ? Colors.green : Colors.grey.shade300,
+                      child: Icon(
+                        done ? Icons.check : Icons.circle,
+                        color: Colors.white,
+                        size: 16,
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                steps[index],
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: isCurrent
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                done
-                                    ? 'Đã hoàn thành bước này'
-                                    : 'Đang chờ xử lý',
-                                style: const TextStyle(color: Colors.black54),
-                              ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                    title: Text(steps[index]),
                   );
                 },
               ),
@@ -147,22 +67,27 @@ class TrackingPage extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: FilledButton(
-                onPressed: () {
-                  appState.advanceOrderStatus();
+                onPressed: order.status == 'Đã giao'
+                    ? null
+                    : () async {
+                  await appState.advanceOrderStatus();
                   onStateChanged();
-                  (context as Element).markNeedsBuild();
+                  if (context.mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TrackingPage(
+                          appState: appState,
+                          onStateChanged: onStateChanged,
+                        ),
+                      ),
+                    );
+                  }
                 },
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                child: Text(
-                  order.status == 'Delivered'
-                      ? 'Order Delivered'
-                      : 'Next Status',
-                ),
+                style: FilledButton.styleFrom(backgroundColor: Colors.black),
+                child: Text(order.status == 'Đã giao'
+                    ? 'Đơn hàng đã giao'
+                    : 'Cập nhật trạng thái'),
               ),
             ),
           ],

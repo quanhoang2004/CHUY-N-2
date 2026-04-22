@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
-import 'circle_icon_button.dart';
-import 'food_emoji_art.dart';
-import 'info_chip.dart';
-import 'quantity_button.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final FoodItem food;
@@ -22,241 +18,170 @@ class FoodDetailPage extends StatefulWidget {
 class _FoodDetailPageState extends State<FoodDetailPage> {
   int quantity = 1;
 
+  String _formatPrice(int price) {
+    final text = price.toString();
+    final buffer = StringBuffer();
+    int count = 0;
+
+    for (int i = text.length - 1; i >= 0; i--) {
+      buffer.write(text[i]);
+      count++;
+      if (count % 3 == 0 && i != 0) {
+        buffer.write('.');
+      }
+    }
+
+    return buffer.toString().split('').reversed.join();
+  }
+
   @override
   Widget build(BuildContext context) {
     final food = widget.food;
+    final total = food.price * quantity;
 
     return Scaffold(
-      backgroundColor: food.color,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Chi tiết món'),
+        backgroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            height: 250,
+            color: food.color.withOpacity(0.18),
+            child: Center(
+              child: Text(
+                food.emoji,
+                style: const TextStyle(fontSize: 110),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleIconButton(
-                    icon: Icons.arrow_back_ios_new,
-                    onTap: () => Navigator.pop(context),
+                  Text(
+                    food.name,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.orange, size: 18),
+                      const SizedBox(width: 4),
+                      Text('${food.rating}'),
+                      const SizedBox(width: 14),
+                      const Icon(Icons.timer_outlined, size: 18),
+                      const SizedBox(width: 4),
+                      Text('${food.minutes} phút'),
+                      const SizedBox(width: 14),
+                      const Icon(Icons.local_fire_department_outlined, size: 18),
+                      const SizedBox(width: 4),
+                      Text('${food.kcal} kcal'),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    '${_formatPrice(food.price)} đ',
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFEE4D2D),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
                   const Text(
-                    'Details',
+                    'Mô tả',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    food.description,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
                   const Spacer(),
-                  CircleIconButton(
-                    icon: Icons.share_outlined,
-                    onTap: () {},
+                  Row(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF4F4F4),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                if (quantity > 1) {
+                                  setState(() {
+                                    quantity--;
+                                  });
+                                }
+                              },
+                              icon: const Icon(Icons.remove),
+                            ),
+                            Text(
+                              '$quantity',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  quantity++;
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 56,
+                          child: FilledButton(
+                            onPressed: () {
+                              widget.onAddToCart(quantity);
+                              Navigator.pop(context);
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFFEE4D2D),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: Text(
+                              'Thêm ${_formatPrice(total)} đ',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 14),
-            FoodEmojiArt(
-              emoji: food.emoji,
-              size: 180,
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(22, 24, 22, 14),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF7F7F7),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(34),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                food.name,
-                                style: const TextStyle(
-                                  fontSize: 34,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Taste the Burger Bang, Pure Joy',
-                                style: TextStyle(color: Colors.black54),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.favorite_border),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      '\$${food.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InfoChip(
-                          icon: Icons.star_border,
-                          label: '${food.rating}',
-                        ),
-                        InfoChip(
-                          icon: Icons.timelapse,
-                          label: '${food.minutes}-${food.minutes + 5} min',
-                        ),
-                        InfoChip(
-                          icon: Icons.local_fire_department_outlined,
-                          label: '${food.kcal} Kcal',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Row(
-                        children: [
-                          const CircleAvatar(
-                            backgroundColor: Colors.black12,
-                            child: Icon(Icons.person, color: Colors.black),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  food.deliveryMan,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const Text(
-                                  'Delivery Man',
-                                  style: TextStyle(color: Colors.black54),
-                                ),
-                              ],
-                            ),
-                          ),
-                          QuantityButton(
-                            icon: Icons.chat_bubble_outline,
-                            onTap: () {},
-                          ),
-                          const SizedBox(width: 8),
-                          QuantityButton(
-                            icon: Icons.call_outlined,
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      food.description,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        height: 1.5,
-                      ),
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                          ),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  if (quantity > 1) {
-                                    setState(() {
-                                      quantity--;
-                                    });
-                                  }
-                                },
-                                icon: const Icon(Icons.remove),
-                              ),
-                              Text(
-                                quantity.toString().padLeft(2, '0'),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    quantity++;
-                                  });
-                                },
-                                icon: const Icon(Icons.add),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: SizedBox(
-                            height: 58,
-                            child: FilledButton(
-                              onPressed: () {
-                                widget.onAddToCart(quantity);
-                                Navigator.pop(context);
-                              },
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                              ),
-                              child: const Text('Add to Cart'),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

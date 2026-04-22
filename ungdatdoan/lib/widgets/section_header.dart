@@ -17,14 +17,17 @@ class SectionHeader extends StatelessWidget {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const Spacer(),
         Text(
           actionLabel,
-          style: const TextStyle(color: Colors.black54),
+          style: const TextStyle(
+            color: Color(0xFFEE4D2D),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );

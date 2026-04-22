@@ -1,34 +1,59 @@
 import 'dart:math';
-import 'data/demo_data.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'models/food_item.dart';
 import 'models/order_item.dart';
 import 'models/user_model.dart';
+import 'services/auth_service.dart';
+import 'services/food_service.dart';
+import 'services/order_service.dart';
 
 class AppState {
-  String selectedCategory = 'All';
+  final AuthService authService = AuthService();
+  final FoodService foodService = FoodService();
+  final OrderService orderService = OrderService();
+
+  String selectedCategory = 'Tất cả';
   String searchText = '';
-  final Map<String, int> cart = {};
+  final Map<int, int> cart = {};
 
-  final List<OrderItem> orderHistory = [];
+  List<FoodItem> foods = [];
+  List<OrderItem> orderHistory = [];
   OrderItem? currentOrder;
-
-  final List<UserModel> users = [
-    const UserModel(
-      fullName: 'Người dùng mẫu',
-      email: 'test@gmail.com',
-      password: '123456',
-    ),
-  ];
 
   UserModel? currentUser;
   bool isLoggedIn = false;
 
+  static const String loggedInKey = 'is_logged_in';
+  static const String currentUserEmailKey = 'current_user_email';
+  static const String currentUserNameKey = 'current_user_name';
+  static const String currentUserRoleKey = 'current_user_role';
+  static const String currentUserIdKey = 'current_user_id';
+
+  Future<void> init() async {
+    await authService.seedAdmin();
+    await foodService.seedFoodsIfEmpty();
+    await loadFoods();
+    await loadOrders();
+    await _loadSession();
+  }
+
+  Future<void> loadFoods() async {
+    foods = await foodService.getFoods();
+  }
+
+  Future<void> loadOrders() async {
+    orderHistory = await orderService.getOrders();
+    if (orderHistory.isNotEmpty) {
+      currentOrder = orderHistory.first;
+    }
+  }
+
   List<String> get categories {
-    return ['Tất cả', ...demoFoods.map((e) => e.category).toSet()];
+    return ['Tất cả', ...foods.map((e) => e.category).toSet()];
   }
 
   List<FoodItem> get filteredFoods {
-    return demoFoods.where((food) {
+    return foods.where((food) {
       final matchCategory =
           selectedCategory == 'Tất cả' || food.category == selectedCategory;
       final matchSearch =
@@ -37,33 +62,107 @@ class AppState {
     }).toList();
   }
 
-  int get cartCount {
-    return cart.values.fold(0, (sum, item) => sum + item);
+  int get cartCount => cart.values.fold(0, (sum, item) => sum + item);
+
+  List<FoodItem> get orderedFoods {
+    return foods.where((food) => cart.containsKey(food.id)).toList();
   }
 
   double get cartTotal {
     double total = 0;
-    for (final food in demoFoods) {
+    for (final food in foods) {
       total += food.price * (cart[food.id] ?? 0);
     }
     return total;
   }
 
-  double get deliveryFee => cart.isEmpty ? 0 : 2.50;
-
+  double get deliveryFee => cart.isEmpty ? 0 : 15000;
   double get taxFee => cartTotal * 0.08;
-
   double get grandTotal => cartTotal + deliveryFee + taxFee;
 
-  void addToCart(FoodItem food, {int quantity = 1}) {
-    cart[food.id] = (cart[food.id] ?? 0) + quantity;
+  Future<void> _saveSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(loggedInKey, isLoggedIn);
+
+    if (currentUser != null) {
+      await prefs.setInt(currentUserIdKey, currentUser!.id ?? 0);
+      await prefs.setString(currentUserEmailKey, currentUser!.email);
+      await prefs.setString(currentUserNameKey, currentUser!.fullName);
+      await prefs.setString(currentUserRoleKey, currentUser!.role);
+    } else {
+      await prefs.remove(currentUserIdKey);
+      await prefs.remove(currentUserEmailKey);
+      await prefs.remove(currentUserNameKey);
+      await prefs.remove(currentUserRoleKey);
+    }
   }
 
-  void increaseQuantity(String foodId) {
+  Future<void> _loadSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    isLoggedIn = prefs.getBool(loggedInKey) ?? false;
+
+    if (isLoggedIn) {
+      currentUser = UserModel(
+        id: prefs.getInt(currentUserIdKey),
+        fullName: prefs.getString(currentUserNameKey) ?? '',
+        email: prefs.getString(currentUserEmailKey) ?? '',
+        password: '',
+        role: prefs.getString(currentUserRoleKey) ?? 'user',
+      );
+    }
+  }
+
+  Future<bool> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    final ok = await authService.register(
+      UserModel(
+        fullName: fullName.trim(),
+        email: email.trim(),
+        password: password.trim(),
+        role: 'user',
+      ),
+    );
+
+    if (!ok) return false;
+
+    currentUser = await authService.login(email.trim(), password.trim());
+    isLoggedIn = currentUser != null;
+    await _saveSession();
+    return true;
+  }
+
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) async {
+    currentUser = await authService.login(email.trim(), password.trim());
+    isLoggedIn = currentUser != null;
+    await _saveSession();
+    return isLoggedIn;
+  }
+
+  Future<void> logout() async {
+    currentUser = null;
+    isLoggedIn = false;
+    cart.clear();
+    await _saveSession();
+  }
+
+  bool get isAdmin => currentUser?.role == 'admin';
+
+  void addToCart(FoodItem food, {int quantity = 1}) {
+    if (food.id == null) return;
+    cart[food.id!] = (cart[food.id!] ?? 0) + quantity;
+  }
+
+  void increaseQuantity(int foodId) {
     cart[foodId] = (cart[foodId] ?? 0) + 1;
   }
 
-  void decreaseQuantity(String foodId) {
+  void decreaseQuantity(int foodId) {
     if (!cart.containsKey(foodId)) return;
     final newValue = (cart[foodId] ?? 0) - 1;
     if (newValue <= 0) {
@@ -73,13 +172,7 @@ class AppState {
     }
   }
 
-  int getFoodQuantity(String foodId) {
-    return cart[foodId] ?? 0;
-  }
-
-  List<FoodItem> get orderedFoods {
-    return demoFoods.where((food) => cart.containsKey(food.id)).toList();
-  }
+  int getFoodQuantity(int foodId) => cart[foodId] ?? 0;
 
   String _generateOrderCode() {
     final random = Random();
@@ -87,23 +180,35 @@ class AppState {
     return 'FD$number';
   }
 
-  void checkout(String paymentMethod) {
+  Future<void> checkout({
+    required String paymentMethod,
+    required String customerName,
+    required String phone,
+    required String address,
+    required String note,
+  }) async {
     if (cart.isEmpty) return;
 
     final order = OrderItem(
       orderCode: _generateOrderCode(),
-      totalAmount: grandTotal,
+      totalAmount: grandTotal.toInt(),
       paymentMethod: paymentMethod,
       status: 'Đang chuẩn bị',
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toIso8601String(),
+      customerName: customerName,
+      phone: phone,
+      address: address,
+      note: note,
     );
 
-    currentOrder = order;
-    orderHistory.insert(0, order);
+    final newId = await orderService.addOrder(order);
+    currentOrder = order.copyWith(id: newId);
+
+    await loadOrders();
     cart.clear();
   }
 
-  void advanceOrderStatus() {
+  Future<void> advanceOrderStatus() async {
     if (currentOrder == null) return;
 
     const statuses = [
@@ -115,71 +220,28 @@ class AppState {
 
     final currentIndex = statuses.indexOf(currentOrder!.status);
     if (currentIndex >= 0 && currentIndex < statuses.length - 1) {
-      final updated = currentOrder!.copyWith(
+      currentOrder = currentOrder!.copyWith(
         status: statuses[currentIndex + 1],
       );
 
-      currentOrder = updated;
-
-      final historyIndex =
-      orderHistory.indexWhere((e) => e.orderCode == updated.orderCode);
-      if (historyIndex != -1) {
-        orderHistory[historyIndex] = updated;
-      }
+      await orderService.updateOrder(currentOrder!);
+      await loadOrders();
     }
   }
 
-  double itemTotal(FoodItem food) {
-    return (cart[food.id] ?? 0) * food.price;
+  Future<void> addFood(FoodItem food) async {
+    await foodService.addFood(food);
+    await loadFoods();
   }
 
-  bool register({
-    required String fullName,
-    required String email,
-    required String password,
-  }) {
-    final existed = users.any(
-          (user) => user.email.trim().toLowerCase() == email.trim().toLowerCase(),
-    );
-
-    if (existed) {
-      return false;
-    }
-
-    final newUser = UserModel(
-      fullName: fullName.trim(),
-      email: email.trim(),
-      password: password.trim(),
-    );
-
-    users.add(newUser);
-    currentUser = newUser;
-    isLoggedIn = true;
-    return true;
+  Future<void> updateFood(FoodItem food) async {
+    await foodService.updateFood(food);
+    await loadFoods();
   }
 
-  bool login({
-    required String email,
-    required String password,
-  }) {
-    try {
-      final user = users.firstWhere(
-            (u) =>
-        u.email.trim().toLowerCase() == email.trim().toLowerCase() &&
-            u.password == password.trim(),
-      );
-
-      currentUser = user;
-      isLoggedIn = true;
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  void logout() {
-    currentUser = null;
-    isLoggedIn = false;
-    cart.clear();
+  Future<void> deleteFood(int id) async {
+    await foodService.deleteFood(id);
+    cart.remove(id);
+    await loadFoods();
   }
 }
