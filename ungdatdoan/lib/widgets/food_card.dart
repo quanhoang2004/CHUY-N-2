@@ -123,7 +123,11 @@ class FoodCard extends StatelessWidget {
                           style: const TextStyle(fontSize: 12),
                         ),
                         const SizedBox(width: 10),
-                        const Icon(Icons.access_time, size: 16, color: Colors.black45),
+                        const Icon(
+                          Icons.access_time,
+                          size: 16,
+                          color: Colors.black45,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(

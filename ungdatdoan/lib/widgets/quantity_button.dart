@@ -14,13 +14,13 @@ class QuantityButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 40,
-        height: 40,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, size: 18),
       ),

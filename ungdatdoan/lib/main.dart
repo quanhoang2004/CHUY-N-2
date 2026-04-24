@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'app_state.dart';
 import 'screens/admin_food_page.dart';
 import 'screens/auth/login_page.dart';
+import 'screens/favorite_page.dart';
 import 'screens/home_page.dart';
-import 'screens/order_history_page.dart';
 import 'screens/orders_page.dart';
 import 'screens/profile_page.dart';
+import 'screens/search_page.dart';
 import 'widgets/nav_item_button.dart';
 
 void main() {
@@ -48,18 +50,32 @@ class _AppEntryState extends State<AppEntry> {
   }
 
   Future<void> initApp() async {
-    await appState.init();
+    try {
+      print('=== BAT DAU initApp ===');
+      await appState.init();
+      print('=== initApp XONG ===');
+    } catch (e, st) {
+      print('=== LOI initApp ===');
+      print(e);
+      print(st);
+    }
+
     if (!mounted) return;
+
     setState(() {
       isLoading = false;
     });
+
+    print('=== DA set isLoading = false ===');
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -108,8 +124,7 @@ class _MainScreenState extends State<MainScreen> {
             currentIndex = 1;
           });
         },
-        onStateChanged: () async {
-          await widget.appState.loadFoods();
+        onStateChanged: () {
           widget.onRefresh();
           setState(() {});
         },
@@ -124,14 +139,25 @@ class _MainScreenState extends State<MainScreen> {
       widget.appState.isAdmin
           ? AdminFoodPage(
         appState: widget.appState,
-        onStateChanged: () async {
-          await widget.appState.loadFoods();
+        onStateChanged: () {
           widget.onRefresh();
           setState(() {});
         },
       )
-          : const SearchPlaceholderPage(),
-      const FavoritePlaceholderPage(),
+          : SearchPage(
+        appState: widget.appState,
+        onStateChanged: () {
+          widget.onRefresh();
+          setState(() {});
+        },
+      ),
+      FavoritePage(
+        appState: widget.appState,
+        onStateChanged: () {
+          widget.onRefresh();
+          setState(() {});
+        },
+      ),
       ProfilePage(
         appState: widget.appState,
         onLogout: () async {
@@ -193,40 +219,6 @@ class _MainScreenState extends State<MainScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class SearchPlaceholderPage extends StatelessWidget {
-  const SearchPlaceholderPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Tìm kiếm',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-class FavoritePlaceholderPage extends StatelessWidget {
-  const FavoritePlaceholderPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Yêu thích',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
         ),
       ),
     );

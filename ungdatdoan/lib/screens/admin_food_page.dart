@@ -22,97 +22,89 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
     final categoryController = TextEditingController(text: food?.category ?? '');
     final priceController = TextEditingController(text: food?.price.toString() ?? '');
     final emojiController = TextEditingController(text: food?.emoji ?? '🍔');
-    final descriptionController =
-    TextEditingController(text: food?.description ?? '');
-    final deliveryManController =
-    TextEditingController(text: food?.deliveryMan ?? '');
+    final descriptionController = TextEditingController(text: food?.description ?? '');
+    final deliveryManController = TextEditingController(text: food?.deliveryMan ?? '');
     final formKey = GlobalKey<FormState>();
 
     await showDialog(
       context: context,
-      builder: (_) {
-        return AlertDialog(
-          title: Text(food == null ? 'Thêm món ăn' : 'Sửa món ăn'),
-          content: SizedBox(
-            width: 360,
-            child: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Tên món'),
-                      validator: (v) => v == null || v.isEmpty ? 'Nhập tên món' : null,
-                    ),
-                    TextFormField(
-                      controller: categoryController,
-                      decoration: const InputDecoration(labelText: 'Danh mục'),
-                      validator: (v) => v == null || v.isEmpty ? 'Nhập danh mục' : null,
-                    ),
-                    TextFormField(
-                      controller: priceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Giá'),
-                      validator: (v) => v == null || v.isEmpty ? 'Nhập giá' : null,
-                    ),
-                    TextFormField(
-                      controller: emojiController,
-                      decoration: const InputDecoration(labelText: 'Emoji'),
-                    ),
-                    TextFormField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(labelText: 'Mô tả'),
-                    ),
-                    TextFormField(
-                      controller: deliveryManController,
-                      decoration: const InputDecoration(labelText: 'Người giao'),
-                    ),
-                  ],
-                ),
+      builder: (_) => AlertDialog(
+        title: Text(food == null ? 'Thêm món ăn' : 'Sửa món ăn'),
+        content: SizedBox(
+          width: 360,
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Tên món'),
+                    validator: (v) => v == null || v.isEmpty ? 'Nhập tên món' : null,
+                  ),
+                  TextFormField(
+                    controller: categoryController,
+                    decoration: const InputDecoration(labelText: 'Danh mục'),
+                  ),
+                  TextFormField(
+                    controller: priceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Giá'),
+                  ),
+                  TextFormField(
+                    controller: emojiController,
+                    decoration: const InputDecoration(labelText: 'Emoji'),
+                  ),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Mô tả'),
+                  ),
+                  TextFormField(
+                    controller: deliveryManController,
+                    decoration: const InputDecoration(labelText: 'Người giao'),
+                  ),
+                ],
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
 
-                final item = FoodItem(
-                  id: food?.id,
-                  name: nameController.text.trim(),
-                  category: categoryController.text.trim(),
-                  price: int.tryParse(priceController.text.trim()) ?? 0,
-                  rating: food?.rating ?? 4.5,
-                  kcal: food?.kcal ?? 100,
-                  discount: food?.discount ?? 10,
-                  minutes: food?.minutes ?? 20,
-                  colorValue: food?.colorValue ?? 0xFFCDEAAF,
-                  emoji: emojiController.text.trim().isEmpty
-                      ? '🍔'
-                      : emojiController.text.trim(),
-                  description: descriptionController.text.trim(),
-                  deliveryMan: deliveryManController.text.trim(),
-                );
+              final item = FoodItem(
+                id: food?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameController.text.trim(),
+                category: categoryController.text.trim(),
+                price: int.tryParse(priceController.text.trim()) ?? 0,
+                rating: food?.rating ?? 4.5,
+                kcal: food?.kcal ?? 100,
+                discount: food?.discount ?? 10,
+                minutes: food?.minutes ?? 20,
+                colorValue: food?.colorValue ?? 0xFFCDEAAF,
+                emoji: emojiController.text.trim().isEmpty ? '🍔' : emojiController.text.trim(),
+                description: descriptionController.text.trim(),
+                deliveryMan: deliveryManController.text.trim(),
+              );
 
-                if (food == null) {
-                  await widget.appState.addFood(item);
-                } else {
-                  await widget.appState.updateFood(item);
-                }
+              if (food == null) {
+                await widget.appState.addFood(item);
+              } else {
+                await widget.appState.updateFood(item);
+              }
 
-                widget.onStateChanged();
-                if (mounted) Navigator.pop(context);
-              },
-              child: const Text('Lưu'),
-            ),
-          ],
-        );
-      },
+              widget.onStateChanged();
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -178,10 +170,8 @@ class _AdminFoodPageState extends State<AdminFoodPage> {
                         ),
                         IconButton(
                           onPressed: () async {
-                            if (food.id != null) {
-                              await widget.appState.deleteFood(food.id!);
-                              widget.onStateChanged();
-                            }
+                            await widget.appState.deleteFood(food.id);
+                            widget.onStateChanged();
                           },
                           icon: const Icon(Icons.delete, color: Colors.red),
                         ),

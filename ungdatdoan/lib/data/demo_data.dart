@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import '../models/food_item.dart';
 
 final List<FoodItem> demoFoods = [
   const FoodItem(
+    id: '1',
     name: 'Burger Bò Phô Mai',
     category: 'Burger',
     price: 82000,
@@ -16,6 +16,7 @@ final List<FoodItem> demoFoods = [
     deliveryMan: 'Nguyễn Văn An',
   ),
   const FoodItem(
+    id: '2',
     name: 'Pizza Margarita',
     category: 'Pizza',
     price: 81000,
@@ -29,6 +30,7 @@ final List<FoodItem> demoFoods = [
     deliveryMan: 'Trần Minh Khoa',
   ),
   const FoodItem(
+    id: '3',
     name: 'Thịt Nướng',
     category: 'Thịt',
     price: 94000,
@@ -42,6 +44,7 @@ final List<FoodItem> demoFoods = [
     deliveryMan: 'Lê Quốc Bảo',
   ),
   const FoodItem(
+    id: '4',
     name: 'Bánh Mì Xúc Xích',
     category: 'Hotdog',
     price: 65000,

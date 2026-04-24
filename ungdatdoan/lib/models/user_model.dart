@@ -1,12 +1,12 @@
 class UserModel {
-  final int? id;
+  final String id;
   final String fullName;
   final String email;
   final String password;
-  final String role; // admin | user
+  final String role;
 
   const UserModel({
-    this.id,
+    required this.id,
     required this.fullName,
     required this.email,
     required this.password,
@@ -25,7 +25,7 @@ class UserModel {
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['id'] as int?,
+      id: map['id'] ?? '',
       fullName: map['fullName'] ?? '',
       email: map['email'] ?? '',
       password: map['password'] ?? '',

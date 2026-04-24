@@ -37,7 +37,10 @@ class HomePage extends StatelessWidget {
                         const CircleAvatar(
                           radius: 20,
                           backgroundColor: Color(0xFFFFF1E8),
-                          child: Icon(Icons.location_on, color: Color(0xFFEE4D2D)),
+                          child: Icon(
+                            Icons.location_on,
+                            color: Color(0xFFEE4D2D),
+                          ),
                         ),
                         const SizedBox(width: 10),
                         const Expanded(
@@ -138,7 +141,8 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                          contentPadding:
+                          const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),
                     ),
@@ -148,7 +152,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.only(top: 8),
@@ -169,7 +172,8 @@ class HomePage extends StatelessWidget {
                         separatorBuilder: (_, __) => const SizedBox(width: 10),
                         itemBuilder: (_, index) {
                           final category = appState.categories[index];
-                          final selected = appState.selectedCategory == category;
+                          final selected =
+                              appState.selectedCategory == category;
 
                           return GestureDetector(
                             onTap: () {
@@ -178,7 +182,8 @@ class HomePage extends StatelessWidget {
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 14),
                               decoration: BoxDecoration(
                                 color: selected
                                     ? const Color(0xFFFFF1E8)
@@ -217,7 +222,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.only(top: 8),
@@ -229,7 +233,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               sliver: SliverGrid(

@@ -82,7 +82,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                       const SizedBox(width: 4),
                       Text('${food.minutes} phút'),
                       const SizedBox(width: 14),
-                      const Icon(Icons.local_fire_department_outlined, size: 18),
+                      const Icon(
+                        Icons.local_fire_department_outlined,
+                        size: 18,
+                      ),
                       const SizedBox(width: 4),
                       Text('${food.kcal} kcal'),
                     ],

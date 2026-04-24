@@ -25,8 +25,31 @@ class _CheckoutPageState extends State<CheckoutPage> {
   final addressController = TextEditingController();
   final noteController = TextEditingController();
 
+  String _formatPrice(num price) {
+    final text = price.toInt().toString();
+    final buffer = StringBuffer();
+    int count = 0;
+    for (int i = text.length - 1; i >= 0; i--) {
+      buffer.write(text[i]);
+      count++;
+      if (count % 3 == 0 && i != 0) {
+        buffer.write('.');
+      }
+    }
+    return buffer.toString().split('').reversed.join();
+  }
+
   Future<void> _placeOrder() async {
     if (widget.appState.cart.isEmpty) return;
+
+    if (nameController.text.trim().isEmpty ||
+        phoneController.text.trim().isEmpty ||
+        addressController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin nhận hàng')),
+      );
+      return;
+    }
 
     setState(() => isLoading = true);
 
@@ -62,7 +85,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
         padding: const EdgeInsets.all(18),
         child: ListView(
           children: [
-            const Text('Thông tin nhận hàng', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text(
+              'Thông tin nhận hàng',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: nameController,
@@ -84,13 +110,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
               decoration: _decoration('Ghi chú'),
             ),
             const SizedBox(height: 20),
-            const Text('Phương thức thanh toán', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text(
+              'Phương thức thanh toán',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             _paymentTile('Tiền mặt'),
             _paymentTile('Thẻ'),
             _paymentTile('Momo'),
             const SizedBox(height: 20),
-            const Text('Tóm tắt đơn hàng', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text(
+              'Tóm tắt đơn hàng',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             _row('Tạm tính', appState.cartTotal),
             _row('Phí giao hàng', appState.deliveryFee),
@@ -102,7 +134,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
               height: 56,
               child: FilledButton(
                 onPressed: isLoading ? null : _placeOrder,
-                style: FilledButton.styleFrom(backgroundColor: Colors.black),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFEE4D2D),
+                ),
                 child: const Text('Đặt hàng'),
               ),
             ),
@@ -137,13 +171,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFCDEAAF) : Colors.white,
+            color: selected ? const Color(0xFFFFF1E8) : Colors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFFEE4D2D)
+                  : Colors.transparent,
+            ),
           ),
           child: Row(
             children: [
               Expanded(child: Text(title)),
-              Icon(selected ? Icons.radio_button_checked : Icons.radio_button_off),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                color: const Color(0xFFEE4D2D),
+              ),
             ],
           ),
         ),
@@ -152,14 +196,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   Widget _row(String label, double amount, {bool isBold = false}) {
-    return Row(
-      children: [
-        Expanded(child: Text(label)),
-        Text(
-          '${amount.toStringAsFixed(0)} đ',
-          style: TextStyle(fontWeight: isBold ? FontWeight.w700 : FontWeight.w500),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(
+            '${_formatPrice(amount)} đ',
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

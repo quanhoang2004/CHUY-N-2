@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class FoodItem {
-  final int? id;
+  final String id;
   final String name;
   final String category;
   final int price;
@@ -15,7 +15,7 @@ class FoodItem {
   final String deliveryMan;
 
   const FoodItem({
-    this.id,
+    required this.id,
     required this.name,
     required this.category,
     required this.price,
@@ -32,7 +32,7 @@ class FoodItem {
   Color get color => Color(colorValue);
 
   FoodItem copyWith({
-    int? id,
+    String? id,
     String? name,
     String? category,
     int? price,
@@ -80,15 +80,15 @@ class FoodItem {
 
   factory FoodItem.fromMap(Map<String, dynamic> map) {
     return FoodItem(
-      id: map['id'] as int?,
+      id: map['id'] ?? '',
       name: map['name'] ?? '',
       category: map['category'] ?? '',
       price: map['price'] ?? 0,
-      rating: (map['rating'] as num).toDouble(),
+      rating: (map['rating'] as num?)?.toDouble() ?? 0,
       kcal: map['kcal'] ?? 0,
       discount: map['discount'] ?? 0,
       minutes: map['minutes'] ?? 0,
-      colorValue: map['colorValue'] ?? 0,
+      colorValue: map['colorValue'] ?? 0xFFCDEAAF,
       emoji: map['emoji'] ?? '🍔',
       description: map['description'] ?? '',
       deliveryMan: map['deliveryMan'] ?? '',

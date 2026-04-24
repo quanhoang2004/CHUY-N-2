@@ -81,38 +81,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 24),
-                const Text('Họ và tên', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: fullNameController,
-                  decoration: _inputDecoration('Nhập họ và tên'),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập họ tên';
-                    }
-                    return null;
-                  },
+                  decoration: _inputDecoration('Họ và tên'),
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Vui lòng nhập họ tên' : null,
                 ),
                 const SizedBox(height: 16),
-                const Text('Email', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: emailController,
-                  decoration: _inputDecoration('Nhập email'),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập email';
-                    }
-                    return null;
-                  },
+                  decoration: _inputDecoration('Email'),
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'Vui lòng nhập email' : null,
                 ),
                 const SizedBox(height: 16),
-                const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: passwordController,
                   obscureText: obscurePassword,
-                  decoration: _inputDecoration('Nhập mật khẩu').copyWith(
+                  decoration: _inputDecoration('Mật khẩu').copyWith(
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -127,19 +113,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().length < 6) {
+                    if (value == null || value.length < 6) {
                       return 'Mật khẩu phải từ 6 ký tự';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Xác nhận mật khẩu', style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: confirmPasswordController,
                   obscureText: obscureConfirmPassword,
-                  decoration: _inputDecoration('Nhập lại mật khẩu'),
+                  decoration: _inputDecoration('Xác nhận mật khẩu'),
                   validator: (value) {
                     if (value != passwordController.text) {
                       return 'Mật khẩu xác nhận không khớp';
@@ -147,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 26),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   height: 56,

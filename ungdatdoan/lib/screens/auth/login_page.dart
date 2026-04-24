@@ -96,9 +96,6 @@ class _LoginPageState extends State<LoginPage> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Vui lòng nhập email';
                     }
-                    if (!value.contains('@')) {
-                      return 'Email không hợp lệ';
-                    }
                     return null;
                   },
                 ),
@@ -123,10 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập mật khẩu';
-                    }
-                    if (value.trim().length < 6) {
+                    if (value == null || value.trim().length < 6) {
                       return 'Mật khẩu phải từ 6 ký tự';
                     }
                     return null;
@@ -138,9 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 56,
                   child: FilledButton(
                     onPressed: handleLogin,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.black,
-                    ),
+                    style: FilledButton.styleFrom(backgroundColor: Colors.black),
                     child: const Text('Đăng nhập'),
                   ),
                 ),
@@ -157,7 +149,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       );
-                      if (mounted) setState(() {});
                     },
                     child: const Text('Chưa có tài khoản? Đăng ký'),
                   ),

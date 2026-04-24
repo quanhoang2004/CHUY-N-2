@@ -1,5 +1,5 @@
 class OrderItem {
-  final int? id;
+  final String id;
   final String orderCode;
   final int totalAmount;
   final String paymentMethod;
@@ -11,7 +11,7 @@ class OrderItem {
   final String note;
 
   const OrderItem({
-    this.id,
+    required this.id,
     required this.orderCode,
     required this.totalAmount,
     required this.paymentMethod,
@@ -24,7 +24,7 @@ class OrderItem {
   });
 
   OrderItem copyWith({
-    int? id,
+    String? id,
     String? orderCode,
     int? totalAmount,
     String? paymentMethod,
@@ -66,7 +66,7 @@ class OrderItem {
 
   factory OrderItem.fromMap(Map<String, dynamic> map) {
     return OrderItem(
-      id: map['id'] as int?,
+      id: map['id'] ?? '',
       orderCode: map['orderCode'] ?? '',
       totalAmount: map['totalAmount'] ?? 0,
       paymentMethod: map['paymentMethod'] ?? '',

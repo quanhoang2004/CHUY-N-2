@@ -29,7 +29,10 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             user?.fullName ?? 'Người dùng',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 8),
           Text(user?.email ?? ''),
@@ -55,13 +58,26 @@ class ProfilePage extends StatelessWidget {
                     );
                   },
                 ),
-                if (appState.isAdmin) const Divider(),
-                if (appState.isAdmin)
+                const Divider(),
+                _tile(
+                  icon: Icons.person_outline,
+                  title: 'Họ tên: ${user?.fullName ?? ''}',
+                  onTap: () {},
+                ),
+                const Divider(),
+                _tile(
+                  icon: Icons.email_outlined,
+                  title: 'Email: ${user?.email ?? ''}',
+                  onTap: () {},
+                ),
+                if (appState.isAdmin) ...[
+                  const Divider(),
                   _tile(
-                    icon: Icons.admin_panel_settings,
+                    icon: Icons.storefront_outlined,
                     title: 'Bạn đang là admin',
                     onTap: () {},
                   ),
+                ],
               ],
             ),
           ),
