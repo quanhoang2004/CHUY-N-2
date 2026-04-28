@@ -1,25 +1,87 @@
-import '../models/order_item.dart';
-import 'db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../models/order_model.dart';
 
 class OrderService {
-  Future<int> addOrder(OrderItem order) async {
-    final db = await DBHelper.database;
-    return db.insert('orders', order.toMap());
+  final FirebaseFirestore db = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  Future<void> createOrder({
+    required int totalAmount,
+    required int deliveryFee,
+    required int discountAmount,
+    required String couponCode,
+    required String paymentMethod,
+    required String paymentStatus,
+    required String address,
+    required String phone,
+    required String note,
+  }) async {
+    final user = auth.currentUser;
+    if (user == null) return;
+
+    await db.collection('orders').add({
+      'userId': user.uid,
+      'userEmail': user.email ?? '',
+      'totalAmount': totalAmount,
+      'deliveryFee': deliveryFee,
+      'discountAmount': discountAmount,
+      'couponCode': couponCode,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentStatus,
+      'status': 'Đang chuẩn bị',
+      'address': address,
+      'phone': phone,
+      'note': note,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  Future<List<OrderItem>> getOrders() async {
-    final db = await DBHelper.database;
-    final result = await db.query('orders', orderBy: 'id DESC');
-    return result.map((e) => OrderItem.fromMap(e)).toList();
+  Stream<List<OrderModel>> getMyOrders() {
+    final user = auth.currentUser;
+    if (user == null) return Stream.value([]);
+
+    return db
+        .collection('orders')
+        .where('userId', isEqualTo: user.uid)
+        .snapshots()
+        .map((snapshot) {
+      final orders = snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return orders;
+    });
   }
 
-  Future<int> updateOrder(OrderItem order) async {
-    final db = await DBHelper.database;
-    return db.update(
-      'orders',
-      order.toMap(),
-      where: 'id = ?',
-      whereArgs: [order.id],
-    );
+  Stream<List<OrderModel>> getAllOrders() {
+    return db.collection('orders').snapshots().map((snapshot) {
+      final orders = snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return orders;
+    });
+  }
+
+  Future<void> updateOrderStatus({
+    required String orderId,
+    required String status,
+  }) async {
+    await db.collection('orders').doc(orderId).update({
+      'status': status,
+    });
+  }
+
+  Future<void> updatePaymentStatus({
+    required String orderId,
+    required String paymentStatus,
+  }) async {
+    await db.collection('orders').doc(orderId).update({
+      'paymentStatus': paymentStatus,
+    });
   }
 }

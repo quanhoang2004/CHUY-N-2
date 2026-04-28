@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/food_item.dart';
+
+import '../models/food_model.dart';
 
 class FoodCard extends StatelessWidget {
-  final FoodItem food;
+  final FoodModel food;
   final VoidCallback onTap;
   final VoidCallback onAdd;
 
@@ -21,9 +22,7 @@ class FoodCard extends StatelessWidget {
     for (int i = text.length - 1; i >= 0; i--) {
       buffer.write(text[i]);
       count++;
-      if (count % 3 == 0 && i != 0) {
-        buffer.write('.');
-      }
+      if (count % 3 == 0 && i != 0) buffer.write('.');
     }
 
     return buffer.toString().split('').reversed.join();
@@ -37,141 +36,117 @@ class FoodCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 118,
-              decoration: BoxDecoration(
-                color: food.color.withOpacity(0.18),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(22),
-                ),
-              ),
+            Expanded(
               child: Stack(
                 children: [
-                  Center(
-                    child: Text(
-                      food.emoji,
-                      style: const TextStyle(fontSize: 56),
+                  Positioned.fill(
+                    child: Image.network(
+                      food.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        return Container(
+                          color: const Color(0xFFFFE4D8),
+                          child: const Center(
+                            child: Icon(Icons.fastfood, size: 42),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEE4D2D),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '-${food.discount}%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                  if (food.discount > 0)
+                    Positioned(
+                      left: 10,
+                      top: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEE4D2D),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '-${food.discount}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      food.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    food.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    food.category,
+                    style: const TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.orange, size: 15),
+                      const SizedBox(width: 3),
+                      Text('${food.rating}', style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.timer_outlined, size: 15),
+                      const SizedBox(width: 3),
+                      Text('${food.minutes} phút',
+                          style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${_formatPrice(food.price)} đ',
+                          style: const TextStyle(
+                            color: Color(0xFFEE4D2D),
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      food.category,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54,
+                      GestureDetector(
+                        onTap: onAdd,
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEE4D2D),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, size: 16, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${food.rating}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        const SizedBox(width: 10),
-                        const Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Colors.black45,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            '${food.minutes} phút',
-                            style: const TextStyle(fontSize: 12),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${_formatPrice(food.price)} đ',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFFEE4D2D),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: onAdd,
-                          child: Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEE4D2D),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
